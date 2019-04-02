@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>大鱼吃小鱼</title>
+  <link href="css/index.css" />
+  <link rel="stylesheet" href="dist/jspanel.css">
+  <script src="js/jquery-3.3.1.min.js"></script>
+</head>
+<style type="text/css">
+	#trash{
+	    position: absolute;
+	    width: 50px;
+		height: 60px;
+	    background: cadetblue;
+	    color: #fff;
+	    padding: 0px;
+	}
+</style>
+<body background="img/sea.jpg">
+<div class="container">
+	<img src="img/explorer.jpg" style="width: 50px; height: 60px;" id="trash"/>
+</div>
+
+<script src="dist/jspanel.js"></script>
+    <!-- optionally load jsPanel extensions -->
+    <script src="dist/extensions/contextmenu/jspanel.contextmenu.js"></script>
+    <script src="dist/extensions/hint/jspanel.hint.js"></script>
+    <script src="dist/extensions/modal/jspanel.modal.js"></script>
+    <script src="dist/extensions/tooltip/jspanel.tooltip.js"></script>
+    <script src="dist/extensions/dock/jspanel.dock.js"></script>
+<script>
+	var grade = 0;//计分
+	var KEY = {
+		UP: 38,
+		DOWN: 40,
+		LEFT:37,
+		RIGHT:39
+	}
+	var fishes  = [0,0,0,0,0,0];//用来判断鱼是否被吃掉
+	var trashes = {};
+	trashes.pressedKeys = [];
+	trashes.width = $("#trash").css("width");
+	trashes.height = $("#trash").css("height");
+	$(function(){
+		//设置Interval用于每30毫秒调用一次gameloop函数
+		trashes.timer = setInterval(gameloop, 30);
+		//标记pressedKeys数组中某个键是按下还是放开
+		$(document).keydown(function(e){
+			trashes.pressedKeys[e.which] = true;
+		});
+		$(document).keyup(function(e){
+			trashes.pressedKeys[e.which] = false;
+		});
+		console.log(trashes)
+	});
+	function gameloop(){
+		moveTrash();
+		for(var i = 0; i<6;i++){
+			if(fishes[i] == 1)
+			{
+				var div1 = document.getElementById("trash");
+				var div2 = document.getElementById("fish"+i);
+				if(check(div1, div2)){
+					width = parseInt($("#trash").css('width'));
+					height = parseInt($("#trash").css('height'));
+					div1.style.width = width * 1.1 + "px";
+					div1.style.height = height * 1.1 + "px";
+					console.log(width*1.1)
+					div2.remove();
+					fishes[i] = 0;
+					getAnothgerFish(i);
+					grade += 10;
+				}
+			}
+			
+				
+		}
+		
+	}
+	function moveTrash(){
+		//使用自定义定时器不断检测是否有按键被按下
+		var t = document.getElementById("trash");
+		
+		if(trashes.pressedKeys[KEY.UP]){//向上键
+			//	把垃圾向上移动五个像素
+			if(t.offsetTop >= 10)
+				t.style.top = t.offsetTop - 10 + "px";
+		}
+		if(trashes.pressedKeys[KEY.DOWN]){//向下键
+			//	把垃圾向下移动五个像素
+			if(t.offsetTop <= window.screen.availHeight - 10)
+				t.style.top = t.offsetTop + 10 + "px";
+		}
+		if(trashes.pressedKeys[KEY.LEFT]){//向左键
+		
+			if(t.offsetLeft >= 10)
+				t.style.left =  t.offsetLeft - 10 + "px";
+		}
+		if(trashes.pressedKeys[KEY.RIGHT]){//向右键
+			if(t.offsetLeft <= window.screen.availWidth - 10)
+			t.style.left = t.offsetLeft + 10 + "px";
+		}
+		
+	}
+	let trash = new Image();
+	
+	function getFish(){
+		//随机生成🐟,如果碰到垃圾,塑料袋变大,鱼被装入塑料袋
+		for(var i = 0; i< 6;i++){
+			fishes[i] = 1;
+			var width = parseInt(Math.random()*(window.screen.availWidth-50),10);//宽度
+			var height = parseInt(Math.random()*(window.screen.availHeight-100),10);//高度
+			var fish = new Image();
+			fish.width = 30;
+			fish.height = 25;
+			fish.src = "img/fish3.jpg";
+			fish.id = "fish"+i;
+			fish.name = "fish";
+			$("body").append(fish);
+			var f = document.getElementById("fish"+i);
+			f.style.left = width + "px";
+			f.style.top = height + "px";
+			f.style.position = "absolute";
+		}
+		
+	}
+	function getAnothgerFish(i){
+		var width = parseInt(Math.random()*(window.screen.availWidth-50),10);//宽度
+		var height = parseInt(Math.random()*(window.screen.availHeight-100),10);//高度
+		var fish = new Image();
+		fish.width = 30;
+		fish.height = 25;
+		fish.src = "img/fish3.jpg";
+		fish.id = "fish"+i;
+		fish.name = "fish";
+		$("body").append(fish);
+		var f = document.getElementById("fish"+i);
+		f.style.left = width + "px";
+		f.style.top = height + "px";
+		f.style.position = "absolute";
+		fishes[i] =1;
+		if(grade == 50){
+			$("body").attr("background","img/graySea1.jpg");
+			showMiddle();
+		}
+		else if(grade == 100){
+			$("body").attr("background","img/graySea.jpg");
+			showEnd();
+		}
+	}
+	//判断2个div是否有交集,判断时以obj1作为固定的obj2作为移动的
+            function check(oDiv, oDiv2) {
+                var t1 = oDiv.offsetTop;
+                var l1 = oDiv.offsetLeft;
+                var r1 = oDiv.offsetLeft + oDiv.offsetWidth;
+                var b1 = oDiv.offsetTop + oDiv.offsetHeight;
+ 
+                var t2 = oDiv2.offsetTop;
+                var l2 = oDiv2.offsetLeft;
+                var r2 = oDiv2.offsetLeft + oDiv2.offsetWidth;
+                var b2 = oDiv2.offsetTop + oDiv2.offsetHeight;
+                if(b1<t2 || l1>r2 || t1>b2 || r1<l2){// 表示没碰上
+					return false;
+                }else{
+                    return true;
+                }
+            }
+	function showStart(){//刚开始的显示信息-0%
+		jsPanel.create({
+		    theme:       'primary',
+		    headerTitle: '刚开始',
+		    position:    'center-top 0 58',
+		    contentSize: '450 250',
+		    content:     '<p>刚开始的海洋是多么的蔚蓝，可是之后……</p>',
+		    callback: function () {
+		        this.content.style.padding = '20px';
+		    },
+		    onbeforeclose: function () {
+		        return confirm('你想知道之后的事情么');
+		    }
+		});
+	}
+	function showMiddle(){//中途显示信息-50%
+		jsPanel.create({
+		    theme:       'primary',
+		    headerTitle: '提醒',
+		    position:    'center-top 0 58',
+		    contentSize: '450 250',
+		    content:     '<p>污染达到50%，注意看你身后的海洋，是不是和刚开始有了变化</p>',
+		    callback: function () {
+		        this.content.style.padding = '20px';
+		    },
+		    onbeforeclose: function () {
+		        return confirm('你还要继续么？');
+		    }
+		});
+	}
+	function showEnd(){//最终显示信息-99%
+		jsPanel.create({
+		    theme:       'primary',
+		    headerTitle: '警告',
+		    position:    'center-top 0 58',
+		    contentSize: '450 250',
+		    content:     '<p>现在海洋已经被污染了99%，你还要继续破坏下去么？</p>',
+		    callback: function () {
+		        this.content.style.padding = '20px';
+		    },
+		    onbeforeclose: function () {
+		        return confirm('现在关闭这个网页，开始保护环境吧！');
+		    }
+		});
+	}
+	 function play(){//游戏函数
+		 
+	 }
+	showStart();
+	
+	getFish();
+	
+	
+</script>
+</body>
+</html>
